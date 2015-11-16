@@ -133,12 +133,34 @@ def classify(X_train, X_test, y_train):
     svm_results = []
     knn_results = []
 
+    # create x, y lists from training datas
+    x_train_list, y_train_list = x_y_lists_from_training(X_train, y_train)
+
+    # train svm
     svm_clf = svm.LinearSVC()
+    svm_clf.fit(x_train_list, y_train_list)
+
+    # predict svm results
+    svm_results = []
+    for x in X_test:
+        prediction = svm_clf.predict(X_test[x])
+        svm_results.append(prediction)
+
     knn_clf = neighbors.KNeighborsClassifier()
 
     # implement your code here
 
     return svm_results, knn_results
+
+def x_y_lists_from_training(x_train, y_train):
+    x_train_list = []
+    y_train_list = []
+    for obj in x_train:
+        x_train_list.append(x_train[obj])
+        y_train_list.append(y_train[obj])
+
+    return x_train_list, y_train_list
+
 
 # A.3, A.4 output
 def print_results(results ,output_file):
