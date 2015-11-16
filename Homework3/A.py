@@ -130,9 +130,6 @@ def classify(X_train, X_test, y_train):
              knn_results: a list of tuples (instance_id, label) where labels are predicted by KNeighborsClassifier
     '''
 
-    svm_results = []
-    knn_results = []
-
     # create x, y lists from training datas
     x_train_list, y_train_list = x_y_lists_from_training(X_train, y_train)
 
@@ -141,16 +138,25 @@ def classify(X_train, X_test, y_train):
     svm_clf.fit(x_train_list, y_train_list)
 
     # predict svm results
-    svm_results = []
-    for x in X_test:
-        prediction = svm_clf.predict(X_test[x])
-        svm_results.append(prediction)
+    svm_results = predictions_from_data(svm_clf, X_test)
 
+    # train knn
     knn_clf = neighbors.KNeighborsClassifier()
+    knn_clf.fit(x_train_list, y_train_list)
 
-    # implement your code here
+    # predict knn
+    knn_results = predictions_from_data(knn_clf, X_test)
 
     return svm_results, knn_results
+
+
+def predictions_from_data(classifier, x_test):
+    results = []
+    for x in x_test:
+        prediction = classifier.predict(x_test[x])
+        results.append(prediction)
+    return results
+
 
 def x_y_lists_from_training(x_train, y_train):
     x_train_list = []
