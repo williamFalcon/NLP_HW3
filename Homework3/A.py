@@ -24,13 +24,13 @@ def build_s(data):
     '''
     s = {}
     for lexelt, lexelt_info in data.items():
-        words = []
+        words = set()
         for (instance_id, left_context, head, right_context, sense_id) in lexelt_info:
             left_tokens = nltk.word_tokenize(left_context)
             right_tokens = nltk.word_tokenize(right_context)
-            words += k_nearest_words_vector_from_tokens(left_tokens, right_tokens, window_size)
+            words.update(k_nearest_words_vector_from_tokens(left_tokens, right_tokens, window_size))
 
-        s[lexelt] = words
+        s[lexelt] = list(words)
 
     return s
 
@@ -75,12 +75,37 @@ def vectorize(data, s):
             { instance_id : sense_id }
 
     '''
+
     vectors = {}
     labels = {}
-
-    # implement your code here
+    for (instance_id, left_context, head, right_context, sense_id) in data:
+        labels[instance_id] = sense_id
+        left_tokens = nltk.word_tokenize(left_context)
+        right_tokens = nltk.word_tokenize(right_context)
+        words = k_nearest_words_vector_from_tokens(left_tokens, right_tokens, window_size)
+        vectors[instance_id] = frequency_vector_from_near_words(s, words)
 
     return vectors, labels
+
+
+def frequency_vector_from_near_words(s, words):
+    freq_dict = list_frequencies(words)
+    vector = empty_vector_of_size(len(s))
+    for idx, word in enumerate(s):
+        if word in freq_dict:
+            vector[idx] = freq_dict[word]
+    return vector
+
+
+def empty_vector_of_size(size):
+    return [0] * size
+
+
+def list_frequencies(list):
+    freq_dict = {}
+    for obj in list:
+        freq_dict[obj] = freq_dict[obj] + 1 if obj in freq_dict else 1
+    return  freq_dict
 
 
 # A.2
