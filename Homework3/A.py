@@ -154,7 +154,8 @@ def predictions_from_data(classifier, x_test):
     results = []
     for x in x_test:
         prediction = classifier.predict(x_test[x])
-        results.append(prediction)
+        result = (x, prediction)
+        results.append(result)
     return results
 
 
@@ -180,6 +181,24 @@ def print_results(results ,output_file):
     # implement your code here
     # don't forget to remove the accent of characters using main.replace_accented(input_str)
     # you should sort results on instance_id before printing
+    # line =      active.v     active.v.bnc.00123123 38201
+    #             lexeltItem   instance_id          sense_id
+    sentences = []
+    for lexel in results:
+        predictions = results[lexel]
+        for instance_id, label in predictions:
+            sentence = lexel + ' ' + instance_id + ' ' + label + '\n'
+            sentences.append(sentence)
+
+    # Sort alphabetically
+    sentences = sorted(sentences)
+
+    # write to file
+    f = open(output_file, 'w')
+    f.writelines(sentences)
+    f.close()
+    print ''
+
 
 # run part A
 def run(train, test, language, knn_file, svm_file):
