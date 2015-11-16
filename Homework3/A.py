@@ -1,6 +1,7 @@
 from main import replace_accented
 from sklearn import svm
 from sklearn import neighbors
+import nltk
 
 # don't change the window size
 window_size = 10
@@ -22,10 +23,40 @@ def build_s(data):
 
     '''
     s = {}
+    for lexelt, lexelt_info in data.items():
+        words = []
+        for (instance_id, left_context, head, right_context, sense_id) in lexelt_info:
+            left_tokens = nltk.word_tokenize(left_context)
+            right_tokens = nltk.word_tokenize(right_context)
+            words += k_nearest_words_vector_from_tokens(left_tokens, right_tokens, window_size)
 
-    # implement your code here
+        s[lexelt] = words
 
     return s
+
+
+def k_nearest_words_vector_from_tokens(left_context, right_context, k):
+
+    left_start = max(len(left_context) - k, 0)
+    right_end = min(k, len(right_context))
+
+    left_set = left_context[left_start:]
+    right_set = right_context[:right_end]
+
+    joint = left_set + right_set
+    return joint
+
+
+def insert_k_nearest_words_into_dict(left_context, right_context, k, freq_dict):
+
+    left_start = max(len(left_context) - k, 0)
+    right_end = min(k, len(right_context))
+
+    for word in left_context[left_start:]:
+        freq_dict[word] = freq_dict[word] + 1 if word in freq_dict else 1
+
+    for word in right_context[:right_end]:
+        freq_dict[word] = freq_dict[word] + 1 if word in freq_dict else 1
 
 
 # A.1
