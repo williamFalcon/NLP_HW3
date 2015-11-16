@@ -2,6 +2,7 @@ from main import replace_accented
 from sklearn import svm
 from sklearn import neighbors
 import nltk
+import unicodedata
 
 # don't change the window size
 window_size = 10
@@ -191,7 +192,7 @@ def print_results(results ,output_file):
     for lexel in results:
         predictions = results[lexel]
         for instance_id, label in predictions:
-            sentence = lexel + ' ' + instance_id + ' ' + label + '\n'
+            sentence = remove_accents(lexel) + ' ' + remove_accents(instance_id) + ' ' + label[0] + '\n'
             sentences.append(sentence)
 
     # Sort alphabetically
@@ -202,6 +203,12 @@ def print_results(results ,output_file):
     f.writelines(sentences)
     f.close()
     print ''
+
+
+def remove_accents(input_str):
+    nfkd_form = unicodedata.normalize('NFKD', input_str)
+    only_ascii = nfkd_form.encode('ASCII', 'ignore')
+    return only_ascii
 
 
 # run part A
@@ -219,10 +226,13 @@ def run(train, test, language, knn_file, svm_file):
         print 'vectorizing testing data'
         X_test, _ = vectorize(test[lexelt], s[lexelt])
 
+        print 'classifying...'
         svm_results[lexelt], knn_results[lexelt] = classify(X_train, X_test, y_train)
 
+    print 'writing files'
     print_results(svm_results, svm_file)
     print_results(knn_results, knn_file)
+    print 'done!'
 
 
 

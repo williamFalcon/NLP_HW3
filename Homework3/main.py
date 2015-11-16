@@ -64,7 +64,10 @@ if __name__ == '__main__':
     best_answer = sys.argv[5]
     language = sys.argv[6]
 
+    print 'parsing training file...'
     train_set = parse_data(train_file)
+
+    print 'parsing test file...'
     test_set = parse_data(test_file)
 
     A.run(train_set, test_set, language, knn_answer, svm_answer)
