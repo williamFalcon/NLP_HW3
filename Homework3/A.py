@@ -134,17 +134,21 @@ def classify(X_train, X_test, y_train):
     x_train_list, y_train_list = x_y_lists_from_training(X_train, y_train)
 
     # train svm
+    print 'training svm...'
     svm_clf = svm.LinearSVC()
     svm_clf.fit(x_train_list, y_train_list)
 
     # predict svm results
+    print 'predicting svm...'
     svm_results = predictions_from_data(svm_clf, X_test)
 
     # train knn
+    print 'training knn'
     knn_clf = neighbors.KNeighborsClassifier()
     knn_clf.fit(x_train_list, y_train_list)
 
     # predict knn
+    print 'predicting knn'
     knn_results = predictions_from_data(knn_clf, X_test)
 
     return svm_results, knn_results
@@ -202,12 +206,19 @@ def print_results(results ,output_file):
 
 # run part A
 def run(train, test, language, knn_file, svm_file):
+
+    print 'building training data...'
     s = build_s(train)
     svm_results = {}
     knn_results = {}
     for lexelt in s:
+
+        print 'vectorizing training data...'
         X_train, y_train = vectorize(train[lexelt], s[lexelt])
+
+        print 'vectorizing testing data'
         X_test, _ = vectorize(test[lexelt], s[lexelt])
+
         svm_results[lexelt], knn_results[lexelt] = classify(X_train, X_test, y_train)
 
     print_results(svm_results, svm_file)
