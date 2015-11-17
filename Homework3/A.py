@@ -3,6 +3,7 @@ from sklearn import svm
 from sklearn import neighbors
 import nltk
 import unicodedata
+import string
 
 # don't change the window size
 window_size = 10
@@ -38,11 +39,31 @@ def build_s(data):
 
 def k_nearest_words_vector_from_tokens(left_context, right_context, k):
 
-    left_start = max(len(left_context) - k, 0)
-    right_end = min(k, len(right_context))
+    exclude = set(string.punctuation)
 
-    left_set = left_context[left_start:]
-    right_set = right_context[:right_end]
+    left_set = [None]*k
+    count = k
+    for w in reversed(left_context):
+        if w not in exclude:
+            left_set[count-1] = w
+            count -= 1
+
+        if count == 0:
+            break
+
+    left_set = left_set[count:]
+
+    right_set = [None]*k
+    count = 0
+    for idx, w in enumerate(right_context):
+        if w not in exclude:
+            right_set[count] = w
+            count += 1
+
+        if count == k:
+            break
+
+    right_set = right_set[:count]
 
     joint = left_set + right_set
     return joint
@@ -50,13 +71,8 @@ def k_nearest_words_vector_from_tokens(left_context, right_context, k):
 
 def insert_k_nearest_words_into_dict(left_context, right_context, k, freq_dict):
 
-    left_start = max(len(left_context) - k, 0)
-    right_end = min(k, len(right_context))
-
-    for word in left_context[left_start:]:
-        freq_dict[word] = freq_dict[word] + 1 if word in freq_dict else 1
-
-    for word in right_context[:right_end]:
+    words = k_nearest_words_vector_from_tokens(left_context, right_context, k)
+    for word in words:
         freq_dict[word] = freq_dict[word] + 1 if word in freq_dict else 1
 
 
