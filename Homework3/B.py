@@ -8,6 +8,15 @@ import pickle
 # You might change the window size
 window_size = 10
 
+# controls the word features
+WORD_WINDOW = 2
+WORD_HEAD = True
+
+# controls the POS features
+POS_WINDOW = 0
+POS_HEAD = True
+
+
 # B.1.a,b,c,d
 def extract_features(data, cached_pos_tags):
     '''
@@ -36,8 +45,10 @@ def extract_features(data, cached_pos_tags):
         right_tokens = nltk.word_tokenize(right_context)
 
         # add features
-        add_k_word_features_to_vector(vector, left_tokens, right_tokens, 3)
-        add_k_word_POS_features_to_vector(vector, left_tags, right_tags, 1, head_tag)
+        word_head = head if WORD_HEAD else None
+        pos_head = head_tag if POS_HEAD else None
+        add_k_word_features_to_vector(vector, left_tokens, right_tokens, WORD_WINDOW, word_head)
+        add_k_word_POS_features_to_vector(vector, left_tags, right_tags, POS_WINDOW, pos_head)
 
         # track results
         features[instance_id] = vector

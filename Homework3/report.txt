@@ -13,34 +13,49 @@ ENGLISH - KNN: 0.560
 
 B -
 
+part a
 English:
 
-No feat selection
-10 words, 10 POS
-60%
+	No feat selection
+	10 words, 10 POS
+	60%
 
-5 POS
-56%
+	5 POS
+	56%
 
-10 POS
-54.8
+	10 POS
+	54.8
 
-5 words
-63.9%
+	5 words
+	63.9%
 
-3 words
-66.5%
+	3 words
+	66.5%
 
-3 POS
-56%
+	3 POS
+	56%
 
-3 POS, 3 WORDS
-64.2%
+	3 POS, 3 WORDS
+	64.2%
 
-1 POS, 3 WORDS
-65.9%
+	1 POS, 3 WORDS
+	65.9%
 
-Best:
-Window = 3, not including head word and doing POS window=1 with head POS.
+	Best English - 66.8%:
+	Window = 3, not including head word and doing POS window=1 with head POS.
+
+Spanish base = 78.7%:
+	+ All POS_W0
+	3 words, 1 POS = 80.8%
+	3 words, 3 POS = 79.5%
+	5 words, 3 POS = 76.8%
+	5 words, 1 POS = 78.5%
+	3 words, 0 POS = 81.2%
+	2 words, 0 POS = 81.4% + head
+
+Catalan base = 82.6%:
+	2 words, word_head = T, 0 POS, pos_head = F:  83.2%
+	3 words, word_head = T, 0 POS, pos_head = F:  81.9%
+	3 words, word_head = T, 0 POS, pos_head = T:  82.1%
 
 
