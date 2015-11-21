@@ -4,18 +4,23 @@ import lib.Universal_tagger as UniversalTagger
 import nltk
 from sklearn import svm
 import pickle
+import re
+import string
 
 # You might change the window size
 window_size = 10
 
 # controls the word features
-WORD_WINDOW = 2
-WORD_HEAD = True
+WORD_WINDOW = 3
+WORD_HEAD = False
 
 # controls the POS features
-POS_WINDOW = 0
+POS_WINDOW = 1
 POS_HEAD = True
 
+REMOVE_PUNCTUATION = False
+
+regex = re.compile('[%s]' % re.escape(string.punctuation))
 
 # B.1.a,b,c,d
 def extract_features(data, cached_pos_tags):
@@ -40,6 +45,11 @@ def extract_features(data, cached_pos_tags):
         vector = {}
         left_tags, head_tag, right_tags = cached_pos_tags[instance_id]
 
+        # collapse punctuated words
+        if REMOVE_PUNCTUATION:
+            left_context = collapse_joint_words(left_context)
+            right_context = collapse_joint_words(right_context)
+
         # prepare feature information
         left_tokens = nltk.word_tokenize(left_context)
         right_tokens = nltk.word_tokenize(right_context)
@@ -56,6 +66,10 @@ def extract_features(data, cached_pos_tags):
 
     return features, labels
 
+
+def collapse_joint_words(sentence):
+    text = regex.sub('', sentence)
+    return text
 
 #  Adds wb1 for 1st word before head and wa1 for first word after head... to +-n words
 def add_k_word_features_to_vector(vector, left_tokens, right_tokens, window_size, head=None):
