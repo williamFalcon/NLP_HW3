@@ -3,6 +3,7 @@ import unicodedata
 from xml.dom import minidom
 import A
 import B
+from lib.Universal_tagger import CatalanTagger
 
 def replace_accented(input_str):
     nkfd_form = unicodedata.normalize('NFKD', input_str)
@@ -53,6 +54,10 @@ def parse_data(input_file):
 
 
 if __name__ == '__main__':
+
+    tgr = CatalanTagger(0.1)
+    tagged = tgr.tag(['Com', 'et', 'dius'])
+
     if len(sys.argv) != 7:
         print 'Usage: python main.py <input_training file> <input test file> <output KNN file> <output SVM file> <output best file> <language>'
         sys.exit(0)
@@ -70,5 +75,5 @@ if __name__ == '__main__':
     print 'parsing test file...'
     test_set = parse_data(test_file)
 
-    A.run(train_set, test_set, language, knn_answer, svm_answer)
+    #A.run(train_set, test_set, language, knn_answer, svm_answer)
     B.run(train_set, test_set, language, best_answer)
