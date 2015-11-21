@@ -55,9 +55,6 @@ def parse_data(input_file):
 
 if __name__ == '__main__':
 
-    tgr = CatalanTagger(0.1)
-    tagged = tgr.tag(['Com', 'et', 'dius'])
-
     if len(sys.argv) != 7:
         print 'Usage: python main.py <input_training file> <input test file> <output KNN file> <output SVM file> <output best file> <language>'
         sys.exit(0)
