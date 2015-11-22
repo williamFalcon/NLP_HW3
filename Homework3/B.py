@@ -8,21 +8,29 @@ import re
 import string
 from nltk.corpus import stopwords
 from nltk.stem.porter import *
+from nltk.corpus import wordnet
 
 # You might change the window size
 window_size = 10
 
 # controls the word features
-WORD_WINDOW = 2
-WORD_HEAD = True
+WORD_WINDOW = 3
+WORD_HEAD = False
 
 # controls the POS features
-POS_WINDOW = 1
-POS_HEAD = True
+FORCE_TAGGER_USE = True
+POS_WINDOW = 0
+POS_HEAD = False
 
-REMOVE_PUNCTUATION = False
-REMOVE_STOP_WORDS = False
-STEM = False
+REMOVE_PUNCTUATION = True
+REMOVE_STOP_WORDS = True
+STEM = True
+
+# Part C
+SYN_WINDOW = 2
+ADD_SYNONYMS = True
+ADD_HYPERNYMS = False
+ADD_HYPONYMS = False
 
 regex = re.compile('[%s]' % re.escape(string.punctuation))
 
@@ -75,6 +83,7 @@ def extract_features(data, tagger=None, stemmer=None):
         add_k_word_features_to_vector(vector, left_tokens, right_tokens, WORD_WINDOW, word_head)
 
         if tagger:
+            add_synonym_counts(tagger, left_tokens, right_tokens, vector, SYN_WINDOW)
             add_k_word_POS_features_to_vector(vector, left_to_tag, right_to_tag, POS_WINDOW, tagger ,pos_head)
 
         # track results
@@ -83,6 +92,15 @@ def extract_features(data, tagger=None, stemmer=None):
 
     return features, labels
 
+def wordnet_tag_from_penn_tag(tag):
+    key_map = {
+        'N': 'n',
+        'J': 'a',
+        'R': 'r',
+        'V': 'v'
+    }
+    a = tag[0]
+    return key_map[a] if a in key_map else None
 
 def stem(stemmer, words):
     stemmed = [stemmer.stem(word) for word in words]
@@ -92,6 +110,30 @@ def stem(stemmer, words):
 def collapse_joint_words(sentence):
     text = regex.sub('', sentence)
     return text
+
+def add_synonym_counts(tagger, left_tokens, right_tokens, vector, window):
+    words = A.k_nearest_words_vector_from_tokens(left_tokens, right_tokens, window)
+
+    for w in words:
+        tagged = tagger.tag([w])
+        word, tag = tagged[0]
+        tag = wordnet_tag_from_penn_tag(tag)
+        synonyms = wordnet.synsets(w, pos=tag)
+        for synset in synonyms:
+
+            if ADD_SYNONYMS:
+                name = synset.name()
+                vector[name] = vector[name]+1 if name in vector else 1
+
+            if ADD_HYPONYMS:
+                for idx, hypo in enumerate(synset.hyponyms()):
+                    name = hypo.name()
+                    vector[name] = vector[name]+1 if name in vector else 1
+
+            if ADD_HYPERNYMS:
+                for idx, hypper in enumerate(synset.hypernyms()):
+                    name = hypper.name()
+                    vector[name] = vector[name]+1 if name in vector else 1
 
 
 # remove stop words
@@ -322,7 +364,7 @@ def run(train, test, language, answer):
     # test_pos_tags = pickle.load(open(test_name, 'rb'))
 
     tagger = None
-    if POS_WINDOW > 0 or POS_HEAD:
+    if POS_WINDOW > 0 or POS_HEAD or FORCE_TAGGER_USE:
         tagger = UniversalTagger.EnglishTagger()
         if language is 'Spanish':
             tagger = UniversalTagger.SpanishTagger()
