@@ -6,24 +6,28 @@ from sklearn import svm
 import pickle
 import re
 import string
+from nltk.corpus import stopwords
+from nltk.stem.porter import *
 
 # You might change the window size
 window_size = 10
 
 # controls the word features
-WORD_WINDOW = 3
-WORD_HEAD = False
+WORD_WINDOW = 2
+WORD_HEAD = True
 
 # controls the POS features
 POS_WINDOW = 1
 POS_HEAD = True
 
 REMOVE_PUNCTUATION = False
+REMOVE_STOP_WORDS = False
+STEM = False
 
 regex = re.compile('[%s]' % re.escape(string.punctuation))
 
 # B.1.a,b,c,d
-def extract_features(data, cached_pos_tags):
+def extract_features(data, tagger=None, stemmer=None):
     '''
     :param data: list of instances for a given lexelt with the following structure:
         {
@@ -43,7 +47,7 @@ def extract_features(data, cached_pos_tags):
     # implement your code here
     for (instance_id, left_context, head, right_context, sense_id) in data:
         vector = {}
-        left_tags, head_tag, right_tags = cached_pos_tags[instance_id]
+        # left_tags, head_tag, right_tags = cached_pos_tags[instance_id]
 
         # collapse punctuated words
         if REMOVE_PUNCTUATION:
@@ -54,11 +58,24 @@ def extract_features(data, cached_pos_tags):
         left_tokens = nltk.word_tokenize(left_context)
         right_tokens = nltk.word_tokenize(right_context)
 
+        if REMOVE_STOP_WORDS:
+            left_tokens = remove_stopwords(left_tokens)
+            right_tokens = remove_stopwords(right_tokens)
+
+        left_to_tag = left_tokens
+        right_to_tag = right_tokens
+
+        if STEM:
+            left_tokens = stem(stemmer, left_tokens)
+            right_tokens = stem(stemmer, right_tokens)
+
         # add features
         word_head = head if WORD_HEAD else None
-        pos_head = head_tag if POS_HEAD else None
+        pos_head = tagger.tag([head]) if tagger and POS_HEAD else None
         add_k_word_features_to_vector(vector, left_tokens, right_tokens, WORD_WINDOW, word_head)
-        add_k_word_POS_features_to_vector(vector, left_tags, right_tags, POS_WINDOW, pos_head)
+
+        if tagger:
+            add_k_word_POS_features_to_vector(vector, left_to_tag, right_to_tag, POS_WINDOW, tagger ,pos_head)
 
         # track results
         features[instance_id] = vector
@@ -67,9 +84,21 @@ def extract_features(data, cached_pos_tags):
     return features, labels
 
 
+def stem(stemmer, words):
+    stemmed = [stemmer.stem(word) for word in words]
+    return stemmed
+
+
 def collapse_joint_words(sentence):
     text = regex.sub('', sentence)
     return text
+
+
+# remove stop words
+def remove_stopwords(word_list):
+    filtered_words = [word for word in word_list if word not in stopwords.words('english')]
+    return filtered_words
+
 
 #  Adds wb1 for 1st word before head and wa1 for first word after head... to +-n words
 def add_k_word_features_to_vector(vector, left_tokens, right_tokens, window_size, head=None):
@@ -91,18 +120,21 @@ def add_k_word_features_to_vector(vector, left_tokens, right_tokens, window_size
 
 
 #  Adds wb1 for 1st word before head and wa1 for first word after head... to +-n words
-def add_k_word_POS_features_to_vector(vector, left_tags, right_tags, window_size, head_tag=None):
+def add_k_word_POS_features_to_vector(vector, left_tokens, right_tokens, window_size, tagger, head_tag=None):
 
-    words = A.k_nearest_words_vector_from_tokens(left_tags, right_tags, window_size)
+    words = A.k_nearest_words_vector_from_tokens(left_tokens, right_tokens, window_size)
     mid = len(words)/2
     left = words[:mid]
     right = words[mid:]
 
-    for idx, (word, tag) in enumerate(left):
-        key = 'pos_b' + str(len(left_tags) - idx)
+    left_tagged = tagger.tag(left)
+    right_tagged = tagger.tag(right)
+
+    for idx, (word, tag) in enumerate(left_tagged):
+        key = 'pos_b' + str(len(left_tagged) - idx)
         vector[key] = tag
 
-    for idx, (word, tag) in enumerate(right):
+    for idx, (word, tag) in enumerate(right_tagged):
         key = 'pos_a' + str(idx+1)
         vector[key] = tag
 
@@ -235,6 +267,16 @@ def tag_and_save(train, test, language):
             middle = tagger.tag([head])
             right_tags = tagger.tag(right_tokens)
 
+            # keys = {}
+            # for word, tag in left_tags:
+            #     keys[word] = tag
+            #
+            # for word, tag in right_tags:
+            #     keys[word] = tag
+            #
+            # head, head_tag = middle
+            # keys[head] = head_tag
+
             # add features
             train_tagged[instance_id] = (left_tags, middle, right_tags)
 
@@ -273,16 +315,29 @@ def run(train, test, language, answer):
     # tag_and_save(train, test, language)
 
     # load cached POS tags
-    print 'loading cached pos tags...'
-    train_name = language + '-train.p'
-    test_name = language + '-test.p'
-    train_pos_tags = pickle.load(open(train_name, 'rb'))
-    test_pos_tags = pickle.load(open(test_name, 'rb'))
+    # print 'loading cached pos tags...'
+    # train_name = language + '-train.p'
+    # test_name = language + '-test.p'
+    # train_pos_tags = pickle.load(open(train_name, 'rb'))
+    # test_pos_tags = pickle.load(open(test_name, 'rb'))
+
+    tagger = None
+    if POS_WINDOW > 0 or POS_HEAD:
+        tagger = UniversalTagger.EnglishTagger()
+        if language is 'Spanish':
+            tagger = UniversalTagger.SpanishTagger()
+
+        if language is 'Catalan':
+            tagger = UniversalTagger.CatalanTagger()
+
+    stemmer = None
+    if STEM:
+        stemmer = PorterStemmer()
 
     for lexelt in train:
 
-        train_features, y_train = extract_features(train[lexelt], train_pos_tags)
-        test_features, _ = extract_features(test[lexelt], test_pos_tags)
+        train_features, y_train = extract_features(train[lexelt], tagger, stemmer)
+        test_features, _ = extract_features(test[lexelt], tagger, stemmer)
 
         X_train, X_test = vectorize(train_features,test_features)
         X_train_new, X_test_new = feature_selection(X_train, X_test,y_train)

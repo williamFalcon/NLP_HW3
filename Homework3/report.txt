@@ -41,9 +41,9 @@ English:
 	1 POS, 3 WORDS
 	65.9%
 
-	Best English - 66.8%:
-	Window = 3, not including head word and doing POS window=1 with head POS.
-
+	Best English - 66.5%:
+	3 Words, word_head = F, 0 POS, pos_head = F 
+	
 Spanish base = 78.7%:
 	+ All POS_W0
 	3 words, 1 POS = 80.8%
@@ -58,4 +58,29 @@ Catalan base = 82.6%:
 	3 words, word_head = T, 0 POS, pos_head = F:  81.9%
 	3 words, word_head = T, 0 POS, pos_head = T:  82.1%
 
+B.B:
+	Removing punctuation and stop words:
+	Remove Punc = T, Remove Stop = T, 3 Words, word_head = F, 0 POS, pos_head = F : 	58.5%
+	Remove Punc = T, Remove Stop = T, 10 Words, word_head = F, 0 POS, pos_head = F : 
+		Onclusion: Lowered accuracy
 
+
+	Add stemming 
+
+	Stem = T, Remove Punc = T, Remove Stop = T, 2 Words, word_head = T, 0 POS, pos_head = T : 	60.7%
+	
+	English
+	Stem = T, Remove Punc = F, Remove Stop = F, 3 Words, word_head = F, 0 POS, pos_head = F : 	67%
+	Stem = T, Remove Punc = F, Remove Stop = F, 4 Words, word_head = F, 0 POS, pos_head = F : 	65.1%
+	Stem = T, Remove Punc = F, Remove Stop = F, 2 Words, word_head = F, 0 POS, pos_head = F : 	64.8%
+	Stem = T, Remove Punc = F, Remove Stop = F, 2 Words, word_head = F, 0 POS, pos_head = T : 	66.3%
+
+
+Best English:
+	Stem = T, Remove Punc = F, Remove Stop = F, 3 Words, word_head = F, 0 POS, pos_head = F : 	67%
+
+Best Spanish:
+	Stem = F, Remove Punc = F, Remove Stop = F, 2 Words, word_head = F, 0 POS, pos_head = F : 	81.4%
+
+Best Catalan:
+	Stem = F, Remove Punc = F, Remove Stop = F, 2 Words, word_head = T, 1 POS, pos_head = T : 	83.3%
