@@ -72,5 +72,5 @@ if __name__ == '__main__':
     print 'parsing test file...'
     test_set = parse_data(test_file)
 
-    #A.run(train_set, test_set, language, knn_answer, svm_answer)
+    A.run(train_set, test_set, language, knn_answer, svm_answer)
     B.run(train_set, test_set, language, best_answer)

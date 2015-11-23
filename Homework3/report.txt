@@ -1,86 +1,112 @@
-(NOT REMOVING PUNCTUATION)
+WILLIAM FALCON
+UNI: WAF2107
+NLP HW3
+--------------------------------------------
 
-CATALAN - SVM: 0.826
-CATALAN - KNN: 0.714
+PART A:
+1 - Complete
+2 - Complete
+3 - Complete
+4 - Complete
+5 Comparison:
+	Below are the results for all my classifiers and the given language.
 
-SPANISH - SVM: 0.787
-SPANISH - KNN: 0.704
+		CATALAN - SVM: 0.826
+		CATALAN - KNN: 0.714
 
-ENGLISH - SVM: 0.621
-ENGLISH - KNN: 0.560
+		SPANISH - SVM: 0.787
+		SPANISH - KNN: 0.704
 
+		ENGLISH - SVM: 0.621
+		ENGLISH - KNN: 0.560
+
+	For each language, the SVM out performed the KNN algorithm. I did not remove punctuation from each context because I found it lowered my accuracy. I imagine had I left it I would have still beat the scores but with lower accuracy.
 
 
 B -
+1- 
+	A. 	Extract words and POS: Complete
+		This part gave me mixed results across all languages. I decreased the window to 3 and saw a radical improvement in accuracy. I tried various experiments alternating between 1-5 words (including/not including the head) and 1-5 words POS tags. Below are some of the results for various languages
 
-part a
-English:
+		English:
 
-	No feat selection
-	10 words, 10 POS
-	60%
+			No feat selection
+			10 words, 10 POS
+			60%
 
-	5 POS
-	56%
+			5 POS
+			56%
 
-	10 POS
-	54.8
+			10 POS
+			54.8
 
-	5 words
-	63.9%
+			5 words
+			63.9%
 
-	3 words
-	66.5%
+			3 words
+			66.5%
 
-	3 POS
-	56%
+			3 POS
+			56%
 
-	3 POS, 3 WORDS
-	64.2%
+			3 POS, 3 WORDS
+			64.2%
 
-	1 POS, 3 WORDS
-	65.9%
+			1 POS, 3 WORDS
+			65.9%
 
-	Best English - 66.5%:
-	3 Words, word_head = F, 0 POS, pos_head = F 
-	
-Spanish base = 78.7%:
-	+ All POS_W0
-	3 words, 1 POS = 80.8%
-	3 words, 3 POS = 79.5%
-	5 words, 3 POS = 76.8%
-	5 words, 1 POS = 78.5%
-	3 words, 0 POS = 81.2%
-	2 words, 0 POS = 81.4% + head
+			Best English - 66.5%:
+			3 Words, word_head = F, 0 POS, pos_head = F 
+			
+		Spanish base = 78.7%:
+			+ All POS_W0
+			3 words, 1 POS = 80.8%
+			3 words, 3 POS = 79.5%
+			5 words, 3 POS = 76.8%
+			5 words, 1 POS = 78.5%
+			3 words, 0 POS = 81.2%
+			2 words, 0 POS = 81.4% + head
 
-Catalan base = 82.6%:
-	2 words, word_head = T, 0 POS, pos_head = F:  83.2%
-	3 words, word_head = T, 0 POS, pos_head = F:  81.9%
-	3 words, word_head = T, 0 POS, pos_head = T:  82.1%
-
-B.B:
-	Removing punctuation and stop words:
-	Remove Punc = T, Remove Stop = T, 3 Words, word_head = F, 0 POS, pos_head = F : 	58.5%
-	Remove Punc = T, Remove Stop = T, 10 Words, word_head = F, 0 POS, pos_head = F : 
-		Onclusion: Lowered accuracy
+		Catalan base = 82.6%:
+			2 words, word_head = T, 0 POS, pos_head = F:  83.2%
+			3 words, word_head = T, 0 POS, pos_head = F:  81.9%
+			3 words, word_head = T, 0 POS, pos_head = T:  82.1%
 
 
-	Add stemming 
 
-	Stem = T, Remove Punc = T, Remove Stop = T, 2 Words, word_head = T, 0 POS, pos_head = T : 	60.7%
-	
-	English
-	Stem = T, Remove Punc = F, Remove Stop = F, 3 Words, word_head = F, 0 POS, pos_head = F : 	67%
-	Stem = T, Remove Punc = F, Remove Stop = F, 4 Words, word_head = F, 0 POS, pos_head = F : 	65.1%
-	Stem = T, Remove Punc = F, Remove Stop = F, 2 Words, word_head = F, 0 POS, pos_head = F : 	64.8%
-	Stem = T, Remove Punc = F, Remove Stop = F, 2 Words, word_head = F, 0 POS, pos_head = T : 	66.3%
+	B.B: Complete
+		I tried different combinations of removing stopwords, punctuation and stemming. Stop words and punctuation actually brought my accuracy to 58% ish for each language. The best effect was from stemming which allowed my english precision to reach 67%.
+
+		Here are some sample runs (including testing again with POS and collocation features) (similar results for Spanish and Catalan..)
+			Removing punctuation and stop words:
+			English:
+			Remove Punc = T, Remove Stop = T, 3 Words, word_head = F, 0 POS, pos_head = F : 	58.5%
+
+		Add stemming 
+		English
+			Stem = T, Remove Punc = T, Remove Stop = T, 2 Words, word_head = T, 0 POS, pos_head = T : 	60.7%
+			Stem = T, Remove Punc = F, Remove Stop = F, 3 Words, word_head = F, 0 POS, pos_head = F : 	67%
+			Stem = T, Remove Punc = F, Remove Stop = F, 4 Words, word_head = F, 0 POS, pos_head = F : 	65.1%
+			Stem = T, Remove Punc = F, Remove Stop = F, 2 Words, word_head = F, 0 POS, pos_head = F : 	64.8%
+			Stem = T, Remove Punc = F, Remove Stop = F, 2 Words, word_head = F, 0 POS, pos_head = T : 	66.3%
+
+	B.C: Complete. 
+		This step I calculated for each lexelt before going into the extract features method. I removed stop words and punctuation before doing the calculation to get highly relevant words. When I ran them in each context, I took the left context first, found their relevancy score in the pre calculated list and picked the n highest. I repeated the same for the right context. I also tried stemming before doing the calculation and it didn't improve my scores much. This method lowered my accuracy to the low 50s and when I added POS tags, I got back to 61% and 63% in English (without loss of generalization in the other languages). I removed this method because it was not as high as my 67% result
+
+	B.D: Complete
+		I used wordnet to add synonyms, hypernyms and hyponyms. Unfortunately these methods also lowered my accuracy to the low 50s even when done alone. I added these features for each word chosen in the context (left and right) window. When coupled with the method from C, it did get the accuracy back to the low 60s, but once again not higher than my all-time best score.
+
+	B.E: Feature extraction:
+		I implemented the chi-2 feature extractor from scikit learn. I tried it on my all-time highest settings for english, but it lowered my accuracy from 67% to 53.4%. I did not get a chance to read about optimizing it more, but it seems like it could be promising once I understand how it works on the inside.
 
 
-Best English:
-	Stem = T, Remove Punc = F, Remove Stop = F, 3 Words, word_head = F, 0 POS, pos_head = F : 	67%
+Overall scores are as follows (along with the set-up to obtain those scores):
 
-Best Spanish:
-	Stem = F, Remove Punc = F, Remove Stop = F, 2 Words, word_head = F, 0 POS, pos_head = F : 	81.4%
+	Best English:
+		Stem = T, Remove Punc = F, Remove Stop = F, 3 Words, word_head = F, 0 POS, pos_head = F : 	67%
 
-Best Catalan:
-	Stem = F, Remove Punc = F, Remove Stop = F, 2 Words, word_head = T, 1 POS, pos_head = T : 	83.3%
+	Best Spanish:
+		Stem = F, Remove Punc = F, Remove Stop = F, 2 Words, word_head = F, 0 POS, pos_head = F : 	81.4%
+
+	Best Catalan:
+		Stem = F, Remove Punc = F, Remove Stop = F, 2 Words, word_head = T, 1 POS, pos_head = T : 	83.3%

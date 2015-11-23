@@ -16,14 +16,14 @@ from sklearn.feature_selection import SelectKBest, chi2
 window_size = 10
 
 # controls the word features
-WORD_WINDOW = 3
+WORD_WINDOW = 5
 WORD_HEAD = False
 USE_WORD_FREQS_INSTEAD_OF_WORDS = False
-USE_RELEVANCY_SCORES = True
+USE_RELEVANCY_SCORES = False
 
 # controls the POS features
 FORCE_TAGGER_USE = False
-POS_WINDOW = 3
+POS_WINDOW = 0
 POS_HEAD = False
 
 REMOVE_PUNCTUATION = False
@@ -31,11 +31,12 @@ REMOVE_STOP_WORDS = False
 STEM = False
 
 # Part C
-SYN_WINDOW = 1
-ADD_SYNONYMS = True
+SYN_WINDOW = 0
+ADD_SYNONYMS = False
 ADD_HYPERNYMS = False
 ADD_HYPONYMS = False
 
+USE_FEATURE_SELECTION = False
 
 regex = re.compile('[%s]' % re.escape(string.punctuation))
 
@@ -364,6 +365,9 @@ def feature_selection(X_train,X_test,y_train):
             { instance_id : sense_id }
     :return:
     '''
+
+    if not USE_FEATURE_SELECTION:
+        return X_train, X_test
 
     chi_square = SelectKBest(chi2, k=10)
     matrix_X_train = []
