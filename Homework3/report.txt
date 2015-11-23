@@ -110,3 +110,11 @@ Overall scores are as follows (along with the set-up to obtain those scores):
 
 	Best Catalan:
 		Stem = F, Remove Punc = F, Remove Stop = F, 2 Words, word_head = T, 1 POS, pos_head = T : 	83.3%
+
+
+
+Conclusions:
+	More data does not necessarily equal better performance. More features can add noise to data which cna affect the performance of classification algorithms - especially the SVM which has a parameter to allow for a bit of uncertainty. However if the data are too noisy, it can put a lot of points into the ambiguous zone and misclasify them. 
+
+	WSD differs dramatically in other languages because we may have less properly tagged data which creates a weaker mapping between words. Also in other languages, we can have parts of words that give a stronger relationship and sense to the other word. For example, in Spanish, the gender (male / female) of a word can give clues about the sense that a certain word is used in that context. Some languages may also have pre and post modifiers that will affect their accuracy.
+	
