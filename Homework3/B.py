@@ -16,18 +16,19 @@ window_size = 10
 # controls the word features
 WORD_WINDOW = 3
 WORD_HEAD = False
+USE_WORD_FREQS_INSTEAD_OF_WORDS = False
 
 # controls the POS features
 FORCE_TAGGER_USE = True
 POS_WINDOW = 0
 POS_HEAD = False
 
-REMOVE_PUNCTUATION = True
-REMOVE_STOP_WORDS = True
+REMOVE_PUNCTUATION = False
+REMOVE_STOP_WORDS = False
 STEM = True
 
 # Part C
-SYN_WINDOW = 2
+SYN_WINDOW = 1
 ADD_SYNONYMS = True
 ADD_HYPERNYMS = False
 ADD_HYPONYMS = False
@@ -80,7 +81,11 @@ def extract_features(data, tagger=None, stemmer=None):
         # add features
         word_head = head if WORD_HEAD else None
         pos_head = tagger.tag([head]) if tagger and POS_HEAD else None
-        add_k_word_features_to_vector(vector, left_tokens, right_tokens, WORD_WINDOW, word_head)
+
+        if USE_WORD_FREQS_INSTEAD_OF_WORDS:
+            add_k_word_features_count_to_vector(vector, left_tokens, right_tokens, WORD_WINDOW, word_head)
+        else:
+            add_k_word_features_to_vector(vector, left_tokens, right_tokens, WORD_WINDOW, word_head)
 
         if tagger:
             add_synonym_counts(tagger, left_tokens, right_tokens, vector, SYN_WINDOW)
@@ -102,6 +107,7 @@ def wordnet_tag_from_penn_tag(tag):
     a = tag[0]
     return key_map[a] if a in key_map else None
 
+
 def stem(stemmer, words):
     stemmed = [stemmer.stem(word) for word in words]
     return stemmed
@@ -110,6 +116,7 @@ def stem(stemmer, words):
 def collapse_joint_words(sentence):
     text = regex.sub('', sentence)
     return text
+
 
 def add_synonym_counts(tagger, left_tokens, right_tokens, vector, window):
     words = A.k_nearest_words_vector_from_tokens(left_tokens, right_tokens, window)
@@ -143,6 +150,16 @@ def remove_stopwords(word_list):
 
 
 #  Adds wb1 for 1st word before head and wa1 for first word after head... to +-n words
+def add_k_word_features_count_to_vector(vector, left_tokens, right_tokens, window_size, head=None):
+    words = A.k_nearest_words_vector_from_tokens(left_tokens, right_tokens, window_size)
+    for word in words:
+        vector[word] = vector[word] + 1 if word in vector else 1
+
+    if head:
+        vector[head] = 1
+
+
+#  Adds wb1 for 1st word before head and wa1 for first word after head... to +-n words
 def add_k_word_features_to_vector(vector, left_tokens, right_tokens, window_size, head=None):
     words = A.k_nearest_words_vector_from_tokens(left_tokens, right_tokens, window_size)
     mid = len(words)/2
@@ -159,6 +176,7 @@ def add_k_word_features_to_vector(vector, left_tokens, right_tokens, window_size
     if head:
         key = 'w_head'
         vector[key] = head
+
 
 
 #  Adds wb1 for 1st word before head and wa1 for first word after head... to +-n words
