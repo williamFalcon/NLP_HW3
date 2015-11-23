@@ -1,6 +1,6 @@
 import A
 from sklearn.feature_extraction import DictVectorizer
-import lib.Universal_tagger as UniversalTagger
+import libw.Universal_tagger as UniversalTagger
 import nltk
 from sklearn import svm
 import pickle
