@@ -10,6 +10,7 @@ from nltk.corpus import stopwords
 from nltk.stem.porter import *
 from nltk.corpus import wordnet
 import math
+from sklearn.feature_selection import SelectKBest, chi2
 
 # You might change the window size
 window_size = 10
@@ -364,11 +365,32 @@ def feature_selection(X_train,X_test,y_train):
     :return:
     '''
 
+    chi_square = SelectKBest(chi2, k=10)
+    matrix_X_train = []
+    matrix_Y_train = []
+    matrix_X_test = []
+    for sent_id in X_train:
+        x = X_train[sent_id]
+        matrix_X_train.append(x)
+        y = y_train[sent_id]
+        matrix_Y_train.append(y)
 
+    for sent_id in X_test:
+        x_t = X_test[sent_id]
+        matrix_X_test.append(x_t)
 
-    # implement your code here
+    x_trained = chi_square.fit_transform(matrix_X_train, matrix_Y_train)
+    x_tested = chi_square.transform(matrix_X_test)
 
-    #return X_train_new, X_test_new
+    count = 0
+    for sent_id in X_train:
+        X_train[sent_id] = x_trained[count]
+        count += 1
+
+    count = 0
+    for sent_id in X_test:
+        X_test[sent_id] = x_tested[count]
+
     # or return all feature (no feature selection):
     return X_train, X_test
 
