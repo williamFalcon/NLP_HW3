@@ -9,6 +9,7 @@ import string
 from nltk.corpus import stopwords
 from nltk.stem.porter import *
 from nltk.corpus import wordnet
+import math
 
 # You might change the window size
 window_size = 10
@@ -17,15 +18,16 @@ window_size = 10
 WORD_WINDOW = 3
 WORD_HEAD = False
 USE_WORD_FREQS_INSTEAD_OF_WORDS = False
+USE_RELEVANCY_SCORES = True
 
 # controls the POS features
-FORCE_TAGGER_USE = True
-POS_WINDOW = 0
+FORCE_TAGGER_USE = False
+POS_WINDOW = 3
 POS_HEAD = False
 
 REMOVE_PUNCTUATION = False
 REMOVE_STOP_WORDS = False
-STEM = True
+STEM = False
 
 # Part C
 SYN_WINDOW = 1
@@ -33,10 +35,11 @@ ADD_SYNONYMS = True
 ADD_HYPERNYMS = False
 ADD_HYPONYMS = False
 
+
 regex = re.compile('[%s]' % re.escape(string.punctuation))
 
 # B.1.a,b,c,d
-def extract_features(data, tagger=None, stemmer=None):
+def extract_features(data, tagger=None, stemmer=None, relevance_key=None):
     '''
     :param data: list of instances for a given lexelt with the following structure:
         {
@@ -51,7 +54,6 @@ def extract_features(data, tagger=None, stemmer=None):
     '''
     features = {}
     labels = {}
-
 
     # implement your code here
     for (instance_id, left_context, head, right_context, sense_id) in data:
@@ -82,10 +84,14 @@ def extract_features(data, tagger=None, stemmer=None):
         word_head = head if WORD_HEAD else None
         pos_head = tagger.tag([head]) if tagger and POS_HEAD else None
 
-        if USE_WORD_FREQS_INSTEAD_OF_WORDS:
-            add_k_word_features_count_to_vector(vector, left_tokens, right_tokens, WORD_WINDOW, word_head)
+        if relevance_key:
+            left_tokens = add_most_frequent_word_features_to_vector(vector, left_tokens, WORD_WINDOW, relevance_key, 'left')
+            right_tokens = add_most_frequent_word_features_to_vector(vector, right_tokens, WORD_WINDOW, relevance_key, 'right')
         else:
-            add_k_word_features_to_vector(vector, left_tokens, right_tokens, WORD_WINDOW, word_head)
+            if USE_WORD_FREQS_INSTEAD_OF_WORDS:
+                add_k_word_features_count_to_vector(vector, left_tokens, right_tokens, WORD_WINDOW, word_head)
+            else:
+                add_k_word_features_to_vector(vector, left_tokens, right_tokens, WORD_WINDOW, word_head)
 
         if tagger:
             add_synonym_counts(tagger, left_tokens, right_tokens, vector, SYN_WINDOW)
@@ -96,6 +102,105 @@ def extract_features(data, tagger=None, stemmer=None):
         labels[instance_id] = sense_id
 
     return features, labels
+
+#  Adds wb1 for 1st word before head and wa1 for first word after head... to +-n words
+def add_most_frequent_word_features_to_vector(vector, tokens, window_size, relevance_key, key_prefix):
+
+    words = []
+
+    # remove duplicates
+    context = list(set(tokens))
+    for word in context:
+        score = relevance_key[word] if word in relevance_key else -10000
+        words.append([score, word])
+
+    # define key function
+    def getKey(item):
+        return item[0]
+
+    # sort scores
+    words = sorted(words, key=getKey, reverse=True)
+
+    # hash scores and return the lookup
+    new_context = []
+    for idx, tup in enumerate(words):
+        score = tup[0]
+        word = tup[1]
+        new_context.append(word)
+        key = 'freq_' + key_prefix + str(idx)
+        vector[key] = word
+
+        if idx == window_size-1:
+            break
+    return new_context
+
+
+def top_relevant_words_from_data(data):
+
+    # counts of c in a sense
+    c_s_freqs = {}
+
+    # total count of c across all contexts
+    c_freqs = {}
+    for (instance_id, left_context, head, right_context, sense_id) in data:
+
+        # remove punctuation
+        left_context = collapse_joint_words(left_context)
+        right_context = collapse_joint_words(right_context)
+
+        # tokenize
+        left_tokens = nltk.word_tokenize(left_context)
+        right_tokens = nltk.word_tokenize(right_context)
+
+        # remove stop words
+        left_tokens = remove_stopwords(left_tokens)
+        right_tokens = remove_stopwords(right_tokens)
+
+        context = left_tokens + right_tokens
+
+        # remove duplicates so we don't double count
+        context = list(set(context))
+
+        for word in context:
+
+            # count times this word appears in all contexts
+            c_freqs[word] = c_freqs[word] + 1 if word in c_freqs else 1
+
+            # count union of c and s
+            c_s = (sense_id, word)
+            c_s_freqs[c_s] = c_s_freqs[c_s] + 1 if c_s in c_s_freqs else 1
+
+    scores = []
+    for tup in c_s_freqs:
+        sense_id, word = tup
+        word_freq_in_context = c_s_freqs[tup]
+        total_word_freq_across_all_contexts = c_freqs[word]
+        num = word_freq_in_context
+        denom = float(total_word_freq_across_all_contexts-word_freq_in_context)
+        if denom > 0:
+            prob = num/denom
+            value = math.log(prob, 2)
+        else:
+            value = -10000
+
+        scores.append([value, word])
+
+    # define key function
+    def getKey(item):
+        return item[0]
+
+    # sort scores
+    scores = sorted(scores, key=getKey, reverse=True)
+
+    # hash scores and return the lookup
+    key = {}
+    for tup in scores:
+        score = tup[0]
+        word = tup[1]
+        key[word] = score
+
+    return key
+
 
 def wordnet_tag_from_penn_tag(tag):
     key_map = {
@@ -395,9 +500,12 @@ def run(train, test, language, answer):
         stemmer = PorterStemmer()
 
     for lexelt in train:
+        relevance_key = None
+        if USE_RELEVANCY_SCORES:
+            relevance_key = top_relevant_words_from_data(train[lexelt])
 
-        train_features, y_train = extract_features(train[lexelt], tagger, stemmer)
-        test_features, _ = extract_features(test[lexelt], tagger, stemmer)
+        train_features, y_train = extract_features(train[lexelt], tagger, stemmer, relevance_key)
+        test_features, _ = extract_features(test[lexelt], tagger, stemmer, relevance_key)
 
         X_train, X_test = vectorize(train_features,test_features)
         X_train_new, X_test_new = feature_selection(X_train, X_test,y_train)
